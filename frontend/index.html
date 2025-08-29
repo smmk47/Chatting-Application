@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat App</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Socket Connection Status -->
+    <div id="socketStatus" class="socket-status disconnected">
+        <i class="fas fa-wifi"></i> Disconnected
+    </div>
+    
+    <div class="container">
+        <!-- Loading Screen -->
+        <div id="loading-screen" class="loading-screen">
+            <div class="loading-spinner"></div>
+            <p>Loading...</p>
+        </div>
+
+        <!-- Auth Container -->
+        <div id="auth-container" class="auth-container">
+            <!-- Login Form -->
+            <div id="login-form" class="auth-form active">
+                <div class="form-header">
+                    <h2><i class="fas fa-sign-in-alt"></i> Welcome Back</h2>
+                    <p>Sign in to your account</p>
+                </div>
+                
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="login-email">Email</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-envelope"></i>
+                            <input type="email" id="login-email" required placeholder="Enter your email">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="login-password">Password</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" id="login-password" required placeholder="Enter your password">
+                            <button type="button" class="toggle-password" onclick="togglePassword('login-password')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">
+                        <span class="btn-text">Sign In</span>
+                        <div class="btn-loader hidden"></div>
+                    </button>
+                </form>
+                
+                <div class="form-footer">
+                    <p>Don't have an account? <a href="#" onclick="showSignup()">Sign up</a></p>
+                </div>
+                
+                <div id="login-error" class="error-message hidden"></div>
+            </div>
+
+            <!-- Signup Form -->
+            <div id="signup-form" class="auth-form">
+                <div class="form-header">
+                    <h2><i class="fas fa-user-plus"></i> Create Account</h2>
+                    <p>Join us today</p>
+                </div>
+                
+                <form id="signupForm">
+                    <div class="form-group">
+                        <label for="signup-username">Username</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-user"></i>
+                            <input type="text" id="signup-username" required placeholder="Choose a username">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="signup-email">Email</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-envelope"></i>
+                            <input type="email" id="signup-email" required placeholder="Enter your email">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="signup-password">Password</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" id="signup-password" required placeholder="Create a password">
+                            <button type="button" class="toggle-password" onclick="togglePassword('signup-password')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">
+                        <span class="btn-text">Create Account</span>
+                        <div class="btn-loader hidden"></div>
+                    </button>
+                </form>
+                
+                <div class="form-footer">
+                    <p>Already have an account? <a href="#" onclick="showLogin()">Sign in</a></p>
+                </div>
+                
+                <div id="signup-error" class="error-message hidden"></div>
+            </div>
+        </div>
+
+        <!-- Profile Container -->
+        <div id="profile-container" class="profile-container hidden">
+            <div class="profile-header">
+                <h2><i class="fas fa-user-circle"></i> Profile</h2>
+                <div class="profile-actions">
+                    <button class="btn btn-primary" onclick="showChatRooms()">
+                        <i class="fas fa-comments"></i> Chat Rooms
+                    </button>
+                    <button class="btn btn-secondary" onclick="logout()">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </button>
+                </div>
+            </div>
+            
+            <div class="profile-content">
+                <div class="profile-avatar-section">
+                    <div class="avatar-wrapper">
+                        <img id="profile-avatar" src="https://via.placeholder.com/150/667eea/ffffff?text=U" alt="Profile Avatar">
+                        <div class="avatar-overlay">
+                            <label for="avatar-upload" class="avatar-upload-btn">
+                                <i class="fas fa-camera"></i>
+                            </label>
+                            <input type="file" id="avatar-upload" accept="image/*" hidden>
+                        </div>
+                    </div>
+                    <p class="avatar-text">Click to change avatar</p>
+                </div>
+                
+                <form id="profileForm" class="profile-form">
+                    <div class="form-group">
+                        <label for="profile-username">Username</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-user"></i>
+                            <input type="text" id="profile-username" readonly>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="profile-email">Email</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-envelope"></i>
+                            <input type="email" id="profile-email" readonly>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="profile-display-name">Display Name</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-id-card"></i>
+                            <input type="text" id="profile-display-name" placeholder="Enter display name">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="profile-bio">Bio</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-quote-left"></i>
+                            <textarea id="profile-bio" placeholder="Tell us about yourself" rows="3"></textarea>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">
+                        <span class="btn-text">Update Profile</span>
+                        <div class="btn-loader hidden"></div>
+                    </button>
+                </form>
+                
+
+                
+                <!-- Security Section -->
+                <div class="security-section">
+                    <h3><i class="fas fa-shield-alt"></i> Security</h3>
+                    <div class="security-actions">
+                        <button class="btn btn-warning" onclick="forceLogoutOthers()" title="Logout all other devices">
+                            <i class="fas fa-sign-out-alt"></i> Logout Other Devices
+                        </button>
+                        <small class="security-note">This will force logout all other sessions except your current one</small>
+                    </div>
+                </div>
+                
+                <div id="profile-error" class="error-message hidden"></div>
+                <div id="profile-success" class="success-message hidden"></div>
+            </div>
+        </div>
+
+        <!-- Chat Rooms Container -->
+        <div id="chat-container" class="chat-container hidden">
+            <div class="chat-header">
+                <h2><i class="fas fa-comments"></i> Chat Rooms</h2>
+                <div class="chat-actions">
+                    <button class="btn btn-primary" onclick="showCreateRoom()">
+                        <i class="fas fa-plus"></i> Create Room
+                    </button>
+                    <button class="btn btn-secondary" onclick="showProfile()">
+                        <i class="fas fa-user"></i> Profile
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Rooms View -->
+            <div id="roomsView" class="rooms-view">
+                <!-- Room Tabs -->
+                <div class="room-tabs">
+                    <button class="tab-btn active" onclick="switchTab('all')">All Rooms</button>
+                    <button class="tab-btn" onclick="switchTab('public')">Public Rooms</button>
+                    <button class="tab-btn" onclick="switchTab('joined')">My Rooms</button>
+                </div>
+                
+                <!-- Room Search -->
+                <div class="room-search">
+                    <div class="input-wrapper">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="roomSearch" placeholder="Search rooms...">
+                    </div>
+                </div>
+                
+                <!-- All Rooms Container -->
+                <div id="allRoomsContainer" class="rooms-container">
+                    <h3>All Chat Rooms</h3>
+                    <div id="roomsContainer" class="rooms-grid"></div>
+                </div>
+                
+                <!-- Public Rooms Container -->
+                <div id="publicRoomsContainer" class="rooms-container hidden">
+                    <h3>Public Chat Rooms</h3>
+                    <div id="publicRoomsGrid" class="rooms-grid"></div>
+                </div>
+                
+                <!-- Joined Rooms Container -->
+                <div id="joinedRoomsContainer" class="rooms-container hidden">
+                    <h3>My Joined Rooms</h3>
+                    <div id="joinedRoomsGrid" class="rooms-grid"></div>
+                </div>
+            </div>
+            
+            <!-- Create Room View -->
+            <div id="createRoomView" class="create-room-view hidden">
+                <div class="create-room-header">
+                    <h3><i class="fas fa-plus-circle"></i> Create New Chat Room</h3>
+                    <button class="btn btn-secondary" onclick="showRoomsView()">
+                        <i class="fas fa-arrow-left"></i> Back to Rooms
+                    </button>
+                </div>
+                
+                <form id="createRoomForm" class="create-room-form">
+                    <div class="form-group">
+                        <label for="roomName">Room Name *</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-hashtag"></i>
+                            <input type="text" id="roomName" name="roomName" required placeholder="Enter room name">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="roomDescription">Description</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-align-left"></i>
+                            <textarea id="roomDescription" name="roomDescription" placeholder="Describe your room" rows="3"></textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="isPrivate">Room Type</label>
+                        <div class="room-type-selector">
+                            <label class="radio-label">
+                                <input type="radio" name="isPrivate" value="false" checked onchange="togglePrivateField()">
+                                <span class="radio-custom"></span>
+                                <i class="fas fa-globe"></i> Public Room
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="isPrivate" value="true" onchange="togglePrivateField()">
+                                <span class="radio-custom"></span>
+                                <i class="fas fa-lock"></i> Private Room
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group private-field hidden">
+                        <label for="roomPassword">Password *</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-key"></i>
+                            <input type="password" id="roomPassword" name="roomPassword" placeholder="Enter room password">
+                        </div>
+                        <small>Private rooms require a password (min 4 characters)</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="maxMembers">Maximum Members</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-users"></i>
+                            <input type="number" id="maxMembers" name="maxMembers" min="2" max="1000" value="100">
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">
+                        <span class="btn-text">Create Chat Room</span>
+                        <div class="btn-loader hidden"></div>
+                    </button>
+                </form>
+            </div>
+            
+            <!-- Chat View -->
+            <div id="chatView" class="chat-view hidden">
+                <div class="chat-room-header">
+                    <div class="room-info">
+                        <h3 id="currentRoomName">Room Name</h3>
+                        <span id="currentRoomMembers">0 members</span>
+                    </div>
+                    <div class="room-actions">
+                        <!-- <button class="btn btn-primary" onclick="window.chatManager.refreshMessages()">
+                            <i class="fas fa-sync-alt"></i> Refresh
+                        </button> -->
+                        <button class="btn btn-secondary" onclick="showRoomsView()">
+                            <i class="fas fa-arrow-left"></i> Back to Rooms
+                        </button>
+                        <!-- <button class="btn btn-warning" onclick="showAuthView()" style="background: #f59e0b;">
+                            <i class="fas fa-home"></i> Back to Auth
+                        </button> -->
+                    </div>
+                </div>
+                
+                <div class="chat-messages">
+                    <div id="messagesContainer" class="messages-container"></div>
+                </div>
+                
+                <form id="messageForm" class="message-form">
+                    <div class="input-wrapper">
+                        <input type="text" id="messageInput" name="message" placeholder="Type your message..." maxlength="1000">
+                        <div class="message-actions">
+                            <label for="fileInput" class="file-upload-btn" title="Attach file">
+                                <i class="fas fa-paperclip"></i>
+                                <input type="file" id="fileInput" name="file" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,.csv,.zip,.rar,.7z" style="display: none;">
+                            </label>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="filePreview" class="file-preview hidden">
+                        <div class="file-info">
+                            <i class="fas fa-file"></i>
+                            <span id="fileName"></span>
+                            <span id="fileSize"></span>
+                            <button type="button" class="remove-file-btn" onclick="removeFile()">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Success Modal -->
+        <div id="success-modal" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <i class="fas fa-check-circle success-icon"></i>
+                    <h3>Success!</h3>
+                </div>
+                <div class="modal-body">
+                    <p id="success-message">Operation completed successfully!</p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary" onclick="closeModal()">Continue</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Image Modal -->
+        <div id="image-modal" class="modal hidden">
+            <div class="modal-content image-modal-content">
+                <div class="modal-header">
+                    <h3 id="image-modal-title">Image Preview</h3>
+                    <button class="close-btn" onclick="closeImageModal()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <img id="image-modal-img" src="" alt="Image Preview">
+                </div>
+                <div class="modal-footer">
+                    <a id="image-download-link" href="" download="" class="btn btn-primary">
+                        <i class="fas fa-download"></i> Download
+                    </a>
+                    <button class="btn btn-secondary" onclick="closeImageModal()">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js"></script>
+    
+    <!-- Socket.io client library -->
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    
+    <!-- Scripts -->
+    <script src="js/firebase-config.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/profile.js"></script>
+    <script src="js/chat.js"></script>
+    <script src="js/app.js"></script>
+    
+    <!-- Real-time chat with Socket.io -->
+    <script src="js/socket.js"></script>
+    
+    <!-- Firebase Cloud Messaging -->
+    <script src="js/fcm.js"></script>
+    
+
+    
+    <script>
+        // Toggle private field visibility
+        function togglePrivateField() {
+            const isPrivate = document.querySelector('input[name="isPrivate"]:checked').value === 'true';
+            const privateField = document.querySelector('.private-field');
+            
+            if (isPrivate) {
+                privateField.classList.remove('hidden');
+                document.getElementById('roomPassword').required = true;
+            } else {
+                privateField.classList.add('hidden');
+                document.getElementById('roomPassword').required = false;
+            }
+        }
+        
+        // Remove file from preview
+        function removeFile() {
+            if (window.chatManager) {
+                window.chatManager.removeFile();
+            }
+        }
+        
+        // Open image modal
+        function openImageModal(imageUrl, imageName) {
+            const imageModal = document.getElementById('image-modal');
+            const imageModalImg = document.getElementById('image-modal-img');
+            const imageModalTitle = document.getElementById('image-modal-title');
+            const imageDownloadLink = document.getElementById('image-download-link');
+            
+            if (imageModal && imageModalImg && imageModalTitle && imageDownloadLink) {
+                imageModalImg.src = imageUrl;
+                imageModalImg.alt = imageName;
+                imageModalTitle.textContent = imageName;
+                imageModalImg.classList.remove('hidden');
+            }
+        }
+        
+        // Close image modal
+        function closeImageModal() {
+            const imageModal = document.getElementById('image-modal');
+            if (imageModal) {
+                imageModal.classList.add('hidden');
+            }
+        }
+        
+        // FCM Debug Functions
+        function testFCM() {
+            console.log('🧪 Testing FCM functionality...');
+            
+            if (window.fcmManager) {
+                console.log('✅ FCM Manager is available');
+                window.fcmManager.debug();
+                
+                // Test token refresh
+                console.log('🔄 Testing token refresh...');
+                window.fcmManager.refreshToken().then(token => {
+                    if (token) {
+                        console.log('✅ Token refresh successful:', token.substring(0, 20) + '...');
+                    } else {
+                        console.log('❌ Token refresh failed');
+                    }
+                });
+            } else {
+                console.log('❌ FCM Manager not available');
+                console.log('📱 Checking Firebase availability...');
+                console.log('Firebase loaded:', typeof firebase !== 'undefined');
+                console.log('Firebase messaging:', typeof firebase !== 'undefined' ? !!firebase.messaging : false);
+                console.log('Auth manager:', !!window.authManager);
+                console.log('User authenticated:', window.authManager?.isAuthenticated);
+                
+                // Check service worker status
+                if ('serviceWorker' in navigator) {
+                    navigator.serviceWorker.getRegistration().then(registration => {
+                        if (registration) {
+                            console.log('📱 Service Worker registered:', registration.scope);
+                            console.log('📱 Service Worker state:', registration.active ? 'active' : 'inactive');
+                        } else {
+                            console.log('📱 No Service Worker registered');
+                        }
+                    });
+                } else {
+                    console.log('📱 Service Worker API not available');
+                }
+            }
+        }
+        
+        // Make FCM debug functions globally available
+        window.testFCM = testFCM;
+        
+        // Additional FCM test functions
+        window.testVapidKeyConversion = () => {
+            console.log('🧪 Testing VAPID key retrieval...');
+            if (window.fcmManager) {
+                try {
+                    const vapidKey = window.fcmManager.getVapidKey();
+                    console.log('✅ VAPID key retrieval successful');
+                    console.log('📱 Type:', typeof vapidKey);
+                    console.log('📱 Length:', vapidKey.length);
+                    console.log('📱 Preview:', vapidKey.substring(0, 20) + '...');
+                    return vapidKey;
+                } catch (error) {
+                    console.error('❌ VAPID key retrieval failed:', error);
+                    return null;
+                }
+            } else {
+                console.error('❌ FCM Manager not available');
+                return null;
+            }
+        };
+        
+        // Force refresh FCM token
+        window.forceRefreshFCMToken = () => {
+            console.log('🔄 Force refreshing FCM token...');
+            if (window.fcmManager) {
+                window.fcmManager.forceRefreshToken().then(token => {
+                    if (token) {
+                        console.log('✅ FCM token force refreshed successfully');
+                        console.log('📱 New token:', token.substring(0, 20) + '...');
+                    } else {
+                        console.warn('⚠️ Failed to force refresh FCM token');
+                    }
+                }).catch(error => {
+                    console.error('❌ Force refresh error:', error);
+                });
+            } else {
+                console.warn('❌ FCM Manager not available');
+            }
+        };
+        
+        // Diagnose FCM issues
+        window.diagnoseFCM = () => {
+            console.log('🔍 Diagnosing FCM issues...');
+            if (window.fcmManager) {
+                window.fcmManager.diagnoseTokenIssue();
+            } else {
+                console.warn('❌ FCM Manager not available');
+            }
+        };
+        
+        // Test real-time message receiving
+        window.testRealTimeMessage = () => {
+            console.log('🧪 Testing real-time message receiving...');
+            if (window.socketClient && window.socketClient.isSocketConnected()) {
+                console.log('✅ Socket client is connected');
+                console.log('✅ Current room:', window.chatManager?.currentRoom);
+                
+                // Simulate receiving a message
+                const testData = {
+                    roomId: window.chatManager?.currentRoom?.id,
+                    message: {
+                        id: Date.now(),
+                        roomId: window.chatManager?.currentRoom?.id,
+                        firebase_uid: 'test-user',
+                        message: 'This is a test real-time message',
+                        messageType: 'text',
+                        createdAt: new Date().toISOString(),
+                        user: {
+                            username: 'TestUser',
+                            display_name: 'Test User',
+                            avatar_url: null
+                        }
+                    },
+                    timestamp: new Date()
+                };
+                
+                console.log('📨 Simulating message_received event with:', testData);
+                window.socketClient.triggerEvent('message_received', testData);
+                
+            } else {
+                console.warn('❌ Socket client not connected or chat manager not available');
+            }
+        };
+        
+        // Debug chat display issues
+        window.debugChatDisplay = () => {
+            console.log('🔍 Debugging chat display issues...');
+            
+            if (window.chatManager) {
+                console.log('✅ Chat manager available');
+                console.log('✅ Current room:', window.chatManager.currentRoom);
+                console.log('✅ Messages count:', window.chatManager.messages.length);
+                console.log('✅ Messages:', window.chatManager.messages);
+                
+                // Check DOM elements
+                const messagesContainer = document.getElementById('messagesContainer');
+                const chatContainer = document.getElementById('chat-container');
+                const roomsContainer = document.getElementById('rooms-container');
+                
+                console.log('🔍 DOM Elements:');
+                console.log('🔍 - Messages container:', messagesContainer);
+                console.log('🔍 - Chat container:', chatContainer);
+                console.log('🔍 - Rooms container:', roomsContainer);
+                
+                if (messagesContainer) {
+                    console.log('🔍 - Messages container HTML:', messagesContainer.innerHTML.substring(0, 200) + '...');
+                    console.log('🔍 - Messages container children:', messagesContainer.children.length);
+                }
+                
+                // Force refresh display
+                if (window.chatManager.displayMessages) {
+                    console.log('🔄 Forcing display refresh...');
+                    window.chatManager.displayMessages();
+                }
+                
+            } else {
+                console.warn('❌ Chat manager not available');
+            }
+        };
+        
+        // Test notification logic
+        window.testNotificationLogic = () => {
+            console.log('🧪 Testing notification logic...');
+            
+            if (window.fcmManager) {
+                console.log('✅ FCM Manager available');
+                
+                // Test data for different scenarios
+                const testScenarios = [
+                    {
+                        name: 'Same room notification',
+                        data: {
+                            roomId: window.chatManager?.currentRoom?.id,
+                            senderId: 'other-user-id'
+                        }
+                    },
+                    {
+                        name: 'Different room notification',
+                        data: {
+                            roomId: (window.chatManager?.currentRoom?.id || 1) + 999,
+                            senderId: 'other-user-id'
+                        }
+                    },
+                    {
+                        name: 'Own message notification',
+                        data: {
+                            roomId: window.chatManager?.currentRoom?.id,
+                            senderId: window.authManager?.currentUser?.firebase_uid
+                        }
+                    }
+                ];
+                
+                testScenarios.forEach(scenario => {
+                    console.log(`\n🧪 Testing: ${scenario.name}`);
+                    console.log('📋 Test data:', scenario.data);
+                    
+                    const shouldShow = window.fcmManager.shouldShowNotification(scenario.data);
+                    console.log(`✅ Result: ${shouldShow ? 'SHOW' : 'HIDE'} notification`);
+                    
+                    if (window.fcmManager.isUserInCurrentRoom) {
+                        const inCurrentRoom = window.fcmManager.isUserInCurrentRoom(scenario.data);
+                        console.log(`📍 In current room: ${inCurrentRoom}`);
+                    }
+                });
+                
+            } else {
+                console.warn('❌ FCM Manager not available');
+            }
+        };
+        
+        // Test enhanced message handling
+        window.testMessageHandling = () => {
+            console.log('🧪 Testing enhanced message handling...');
+            
+            if (window.chatManager) {
+                console.log('✅ Chat Manager available');
+                console.log('✅ Current room:', window.chatManager.currentRoom);
+                console.log('✅ Messages count:', window.chatManager.messages.length);
+                
+                // Test optimistic message creation
+                if (window.chatManager.createOptimisticMessage) {
+                    const testMessage = 'This is a test optimistic message';
+                    const optimisticMsg = window.chatManager.createOptimisticMessage(testMessage);
+                    console.log('🚀 Test optimistic message created:', optimisticMsg);
+                    
+                    // Clean up test message
+                    if (optimisticMsg) {
+                        window.chatManager.removeOptimisticMessage(optimisticMsg);
+                        console.log('🧹 Test optimistic message cleaned up');
+                    }
+                }
+                
+                // Test message validation
+                if (window.chatManager.validateMessageData) {
+                    const testData = {
+                        message: 'Test message',
+                        created_at: new Date().toISOString(),
+                        user: { username: 'TestUser' }
+                    };
+                    const validated = window.chatManager.validateMessageData(testData);
+                    console.log('✅ Test message validation:', validated);
+                }
+                
+            } else {
+                console.warn('❌ Chat Manager not available');
+            }
+        };
+        
+        // Test message validation with real data format
+        window.testMessageValidation = () => {
+            console.log('🧪 Testing message validation with real data format...');
+            
+            if (window.chatManager && window.chatManager.validateMessageData) {
+                // Test with the exact format from the console logs
+                const realMessageData = {
+                    id: 309,
+                    roomId: 14,
+                    firebase_uid: 'FgC2c1OFDDReKlivsCEduRdhAmq1',
+                    message: 'qwerty',
+                    messageType: 'text',
+                    createdAt: new Date().toISOString(),
+                    user: {
+                        username: 'testuser',
+                        display_name: 'Test User',
+                        avatar_url: null
+                    }
+                };
+                
+                console.log('📋 Testing with real message data:', realMessageData);
+                const validated = window.chatManager.validateMessageData(realMessageData);
+                console.log('✅ Validation result:', validated);
+                
+                if (validated) {
+                    console.log('✅ Message would be displayed successfully');
+                } else {
+                    console.log('❌ Message validation failed');
+                }
+            } else {
+                console.warn('❌ Chat Manager or validateMessageData not available');
+            }
+        };
+        
+        // Test complete message flow
+        window.testCompleteMessageFlow = () => {
+            console.log('🧪 Testing complete message flow...');
+            
+            if (window.chatManager && window.chatManager.processIncomingMessage) {
+                console.log('✅ Chat Manager and processIncomingMessage available');
+                
+                // Test message processing
+                const testMessage = {
+                    id: Date.now(),
+                    roomId: window.chatManager.currentRoom?.id || 1,
+                    firebase_uid: 'test-user-id',
+                    message: 'This is a test message for flow testing',
+                    messageType: 'text',
+                    createdAt: new Date().toISOString(),
+                    user: {
+                        username: 'TestUser',
+                        display_name: 'Test User',
+                        avatar_url: null
+                    }
+                };
+                
+                console.log('📋 Test message:', testMessage);
+                console.log('🔄 Processing test message...');
+                
+                // Process the message
+                window.chatManager.processIncomingMessage(testMessage, 'test');
+                
+                console.log('✅ Test message flow completed');
+                console.log('📊 Current messages count:', window.chatManager.messages.length);
+                
+            } else {
+                console.warn('❌ Chat Manager or processIncomingMessage not available');
+            }
+        };
+        
+        // Test notification logic with room status
+        window.testNotificationWithRoom = () => {
+            console.log('🧪 Testing notification logic with room status...');
+            
+            if (window.fcmManager && window.chatManager) {
+                console.log('✅ FCM Manager and Chat Manager available');
+                
+                const testData = {
+                    roomId: window.chatManager.currentRoom?.id || 1,
+                    senderId: 'other-user-id'
+                };
+                
+                console.log('📋 Test notification data:', testData);
+                console.log('📍 Current room:', window.chatManager.currentRoom);
+                console.log('🔍 Chat view active:', !document.getElementById('chat-container')?.classList.contains('hidden'));
+                console.log('🔍 Rooms view hidden:', document.getElementById('rooms-container')?.classList.contains('hidden'));
+                
+                // Test notification logic
+                const shouldShow = window.fcmManager.shouldShowNotification(testData);
+                console.log('✅ Should show notification:', shouldShow);
+                
+                if (window.fcmManager.isUserInCurrentRoom) {
+                    const inCurrentRoom = window.fcmManager.isUserInCurrentRoom(testData);
+                    console.log('📍 In current room and actively chatting:', inCurrentRoom);
+                }
+                
+            } else {
+                console.warn('❌ FCM Manager or Chat Manager not available');
+            }
+        };
+    </script>
+</body>
+</html>
