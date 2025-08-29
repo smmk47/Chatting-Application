@@ -267,19 +267,5 @@ Prepare notification → Send via FCM → Users receive push notification
 
 
 
-## 🎓 Project Context
-
-This chat application was built as part of my **onboarding project** to demonstrate:
-
-- **Full-Stack Development**: Backend (Node.js/Express) + Frontend (Vanilla JS)
-- **Real-Time Communication**: Socket.io WebSocket implementation
-- **Modern Authentication**: Firebase integration with security best practices
-- **Database Design**: PostgreSQL with Sequelize ORM
-- **File Management**: Cloudinary integration for file uploads
-- **Push Notifications**: FCM implementation for mobile/web
-- **API Design**: RESTful endpoints with proper error handling
-- **Real-Time Features**: Live messaging, typing indicators, user status
-
-
 
 
